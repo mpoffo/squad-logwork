@@ -99,12 +99,12 @@ As credenciais são salvas no `localStorage` do browser.
 
 | Usuário | — |
 |---|---|
-| mauro.ramos | Squad Leader |
+| marcio.poffo | Squad Leader |
 | fernando.zimmermann | Dev |
 | diegof.silva | Dev |
 | leonardo.correa | Dev |
 | douglas.scardueli | Dev |
-| marcio.poffo | Dev |
+| mauro.ramos | Dev |
 
 Para adicionar ou remover membros, edite o array `TEAM` no início do `<script>` em `squad-logwork.html`.
 
