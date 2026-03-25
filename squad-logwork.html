@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squad Logwork v1.3.0 — HCMDOF</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700&display=swap');
+
+  :root {
+    --bg:#0d0f18;--bg2:#12151f;--bg3:#181c2a;
+    --border:#1e2438;--border2:#2a3050;
+    --text:#e2e8f0;--text2:#8892a4;--text3:#4a5568;
+    --accent:#6366f1;--accent2:#818cf8;
+    --success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#38bdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;}
+  ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+  .nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;gap:4px;align-items:flex-end;}
+  .nav-brand{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--accent2);padding:12px 16px 12px 0;border-right:1px solid var(--border);margin-right:8px;letter-spacing:-0.02em;}
+  .nav-brand small{display:block;font-size:10px;color:var(--text3);font-weight:400;}
+  .tab{padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+  .tab:hover{color:var(--text2);}.tab.active{color:var(--accent2);border-bottom-color:var(--accent);}
+
+  .page{display:none;padding:16px 20px;}.page.active{display:block;}
+
+  .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:12px;}
+  .toolbar-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--text2);flex:1;min-width:80px;}
+
+  label{font-size:10px;color:var(--text3);letter-spacing:.05em;}
+  input[type=text],input[type=password],input[type=date],input[type=month],select{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:5px 9px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;}
+  input:focus,select:focus{border-color:var(--accent);}
+
+  .btn{border:1px solid var(--border2);background:var(--bg3);color:var(--text2);padding:5px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;white-space:nowrap;}
+  .btn:hover{background:var(--border);color:var(--text);}.btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}.btn-primary:hover{background:#4f51e0;}
+  .btn-success{background:var(--success);color:#fff;border-color:var(--success);}.btn-success:hover{opacity:.85;}
+  .btn-sm{padding:3px 9px;font-size:11px;}.btn-sm.ok{background:#064e3b;color:var(--success);border-color:var(--success);}.btn-sm.err{background:#450a0a;color:var(--danger);border-color:var(--danger);}
+
+  .stats-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+  .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;min-width:80px;}
+  .stat-val{font-size:18px;font-weight:600;font-family:'Sora',sans-serif;}.stat-lbl{font-size:10px;color:var(--text3);margin-top:1px;letter-spacing:.04em;}
+  .warn-box{background:#422006;border:1px solid #92400e;color:#fbbf24;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:500;}
+
+  .section-lbl{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--accent2);text-transform:uppercase;padding:6px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin:10px 0 4px;}
+  .issue-list{display:flex;flex-direction:column;gap:3px;}
+  .irow{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;transition:border-color .12s,opacity .15s,box-shadow .15s;}
+  .irow:hover{border-color:var(--border2);}.irow.off{opacity:.35;}
+  .irow.over-limit{opacity:1;border-color:#7f1d1d;background:#1a0a0a;box-shadow:0 0 0 1px #ef444422,inset 0 0 12px #ef444408;}
+  .irow.over-limit:hover{border-color:#ef4444;box-shadow:0 0 0 1px #ef444455,inset 0 0 16px #ef444412;}
+
+  .type-badge{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;min-width:40px;text-align:center;letter-spacing:.04em;flex-shrink:0;}
+  .t-bug{background:#450a0a;color:#fca5a5;}.t-story{background:#1e1b4b;color:#a5b4fc;}.t-feature{background:#064e3b;color:#6ee7b7;}.t-epic{background:#451a03;color:#fcd34d;}
+  .st-pill{font-size:9px;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;font-weight:500;}
+  .st-todo{background:#1e2438;color:#64748b;border:1px solid #2a3050;}
+  .st-inprogress{background:#1c2d1c;color:#4ade80;border:1px solid #166534;}
+  .st-codereview{background:#2d1f4a;color:#c084fc;border:1px solid #6b21a8;}
+  .st-todoreview{background:#1a2a3a;color:#38bdf8;border:1px solid #0369a1;}
+  .st-review{background:#1a2d2d;color:#2dd4bf;border:1px solid #0f766e;}
+  .st-done{background:#0f1a0f;color:#374151;border:1px solid #1f2937;}
+  .st-other{background:#1e2438;color:#64748b;border:1px solid #2a3050;}
+  .key-lbl{font-size:11px;font-weight:600;color:#93c5fd;width:90px;flex-shrink:0;}
+  .key-lbl a,.dt-key a{color:inherit;text-decoration:none;border-bottom:1px dashed #93c5fd55;transition:border-color .15s,color .15s;}
+  .key-lbl a:hover,.dt-key a:hover{color:#bfdbfe;border-bottom-color:#93c5fd;}
+  .summary-lbl{flex:1;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .meta-lbl{font-size:10px;color:var(--text3);flex-shrink:0;white-space:nowrap;}
+  .slider-wrap{width:120px;flex-shrink:0;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;padding:0;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);transition:transform .1s;}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
+  input[type=range]:disabled{opacity:.3;cursor:not-allowed;}
+  .h-val{font-size:13px;font-weight:600;width:44px;text-align:right;flex-shrink:0;color:var(--accent2);}
+
+  .error-box{background:#450a0a;border:1px solid #991b1b;color:#fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;}
+  .loading-msg{text-align:center;padding:40px;color:var(--text3);font-size:13px;}
+  .progress-wrap{padding:28px 20px;display:none;flex-direction:column;gap:10px;}
+  .progress-bar-bg{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .progress-bar-fill{height:100%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:2px;transition:width .35s ease;}
+  .progress-steps{display:flex;flex-direction:column;gap:4px;}
+  .progress-step{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);transition:color .2s;}
+  .progress-step.active{color:var(--text);}
+  .progress-step.done{color:#4ade80;}
+  .progress-step.err{color:#f87171;}
+  .progress-step .step-icon{width:14px;text-align:center;flex-shrink:0;}
+  .progress-step .step-label{flex:1;}
+  .progress-step .step-count{font-size:10px;color:var(--text3);font-variant-numeric:tabular-nums;}
+  .empty-msg{text-align:center;padding:60px;color:var(--text3);font-size:13px;}
+  .empty-msg .ico{font-size:40px;display:block;margin-bottom:12px;opacity:.3;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;}
+  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;min-width:380px;max-width:90vw;}
+  .modal h3{font-family:'Sora',sans-serif;font-size:15px;color:var(--accent2);margin-bottom:18px;}
+  .field-group{display:flex;flex-direction:column;gap:10px;}
+  .field label{display:block;margin-bottom:4px;font-size:11px;color:var(--text2);}
+  .field input{width:100%;}
+
+  .chart-container{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;}
+  .chart-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;}
+
+  .member-table{width:100%;border-collapse:collapse;font-size:11px;}
+  .member-table th{padding:6px 10px;text-align:left;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:.05em;}
+  .member-table td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text2);}
+  .member-table tr:hover td{background:var(--bg3);}
+  .pb-bg{background:var(--bg3);border-radius:3px;height:6px;min-width:60px;}
+  .pb{height:6px;border-radius:3px;background:var(--accent);transition:width .3s;}
+  .pb.over{background:var(--warning);}.pb.under{background:var(--text3);}
+  .badge-pct{font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;}
+  .pct-ok{background:#064e3b;color:var(--success);}.pct-warn{background:#422006;color:var(--warning);}.pct-low{background:#1a1a2e;color:var(--text3);}
+  .expand-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:0 4px;transition:color .12s;font-family:'JetBrains Mono',monospace;}
+  .expand-btn:hover{color:var(--text);}
+  .detail-row{display:none;}
+  .detail-row.open{display:table-row;}
+  .detail-inner{padding:6px 10px 10px 28px;background:var(--bg3);}
+  .detail-table{width:100%;border-collapse:collapse;font-size:10px;}
+  .detail-table td{padding:3px 8px;border-bottom:1px solid var(--border);color:var(--text2);}
+  .detail-table tr:last-child td{border-bottom:none;}
+  .detail-table .dt-date{color:var(--text3);width:80px;white-space:nowrap;}
+  .detail-table .dt-key{color:#93c5fd;width:90px;white-space:nowrap;font-weight:600;}
+  .detail-table .dt-h{text-align:right;color:var(--accent2);font-weight:600;white-space:nowrap;width:50px;}
+  .detail-table .dt-sum{color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;}
+  .week-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
+  .week-tab{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);transition:all .12s;}
+  .week-tab:hover{color:var(--text);}.week-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .info-note{background:#0f1729;border:1px solid #1e3a5f;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:11px;color:#60a5fa;line-height:1.7;}
+  .info-note code{background:#1e2d4a;padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;}
+  .cfg-tab{background:none;border:none;border-bottom:2px solid transparent;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;transition:all .12s;}
+  .cfg-tab:hover{color:var(--text2);}
+  .cfg-tab.active{color:var(--accent2);border-bottom-color:var(--accent);}
+  textarea:focus{border-color:var(--accent);outline:none;}
+</style>
+</head>
+<body>
+
+<!-- MODAL CONFIG -->
+<div class="modal-bg" id="cfg-modal" style="display:none" onclick="closeCfgIf(event)">
+  <div class="modal" style="min-width:480px;max-width:96vw">
+    <h3>⚙ Configuração</h3>
+    <!-- abas internas -->
+    <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">
+      <button class="cfg-tab active" id="ctab-jira" onclick="setCfgTab('jira')">Jira</button>
+      <button class="cfg-tab" id="ctab-team" onclick="setCfgTab('team')">Time</button>
+      <button class="cfg-tab" id="ctab-queries" onclick="setCfgTab('queries')">Queries</button>
+    </div>
+
+    <!-- aba Jira -->
+    <div id="cpanel-jira" class="field-group">
+      <div class="field"><label>URL base do Jira</label><input type="text" id="cfg-url" placeholder="https://jira.senior.com.br"></div>
+      <div class="field"><label>Usuário</label><input type="text" id="cfg-user" placeholder="seu.usuario"></div>
+      <div class="field"><label>Senha / API Token</label><input type="password" id="cfg-pass"></div>
+    </div>
+
+    <!-- aba Time -->
+    <div id="cpanel-team" class="field-group" style="display:none">
+      <div class="field">
+        <label>Membros do time — um por linha (usuario.nome)</label>
+        <textarea id="cfg-team" rows="8" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:7px 9px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;resize:vertical"></textarea>
+        <span style="font-size:10px;color:var(--text3)">Padrão: mauro.ramos, fernando.zimmermann, diegof.silva, leonardo.correa, douglas.scardueli, marcio.poffo</span>
+      </div>
+      <div class="field">
+        <label>Horas diárias esperadas por pessoa</label>
+        <input type="number" id="cfg-hours" min="1" max="24" step="0.5" style="width:100px">
+        <span style="font-size:10px;color:var(--text3);margin-left:8px">Padrão: 8.5</span>
+      </div>
+      <div class="field">
+        <label>Limite de horas acumuladas para alerta (⚠)</label>
+        <input type="number" id="cfg-overlimit" min="1" max="200" step="1" style="width:100px">
+        <span style="font-size:10px;color:var(--text3);margin-left:8px">Padrão: 27</span>
+      </div>
+
+    </div>
+    <div id="cpanel-queries" class="field-group" style="display:none">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;line-height:1.6">
+        JQL usadas nas buscas. Se uma query falhar, o app mostrará o erro e usará a query anterior que funcionou.<br>
+        Use <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">{projeto}</code> e <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">{data}</code> como variáveis opcionais.
+      </div>
+      <div class="field">
+        <label>Query principal (issues elegíveis)</label>
+        <textarea id="cfg-jql-main" rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:7px 9px;font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;resize:vertical"></textarea>
+        <span id="jql-main-err" style="font-size:10px;color:var(--danger);display:none"></span>
+      </div>
+      <div class="field">
+        <label>Query sprint corrente</label>
+        <textarea id="cfg-jql-sprint" rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:7px 9px;font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;resize:vertical"></textarea>
+        <span id="jql-sprint-err" style="font-size:10px;color:var(--danger);display:none"></span>
+      </div>
+      <div class="field">
+        <label>Query administrativa (HADM)</label>
+        <textarea id="cfg-jql-adm" rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:7px 9px;font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;resize:vertical"></textarea>
+        <span id="jql-adm-err" style="font-size:10px;color:var(--danger);display:none"></span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveCfg()">Salvar</button>
+      <button class="btn" onclick="document.getElementById('cfg-modal').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-brand">⏱ Squad Logwork <small>HCMDOF · v1.3.0</small></div>
+  <button class="tab active" id="tab-log" onclick="showPage('log')">Apontar Horas</button>
+  <button class="tab" id="tab-team" onclick="showPage('team')">Horas do Time</button>
+  <div style="flex:1"></div>
+  <button class="btn btn-sm" style="margin:8px 0" onclick="document.getElementById('cfg-modal').style.display='flex'">⚙ Config</button>
+</div>
+
+<!-- PAGE: LOGWORK -->
+<div class="page active" id="page-log">
+  <div class="info-note">
+    Rodando via proxy local — requests vão para <code>localhost:3000</code> que repassa ao Jira.<br>
+    Certifique-se: <strong>1)</strong> VPN ativa &nbsp;<strong>2)</strong> proxy rodando: <code>node proxy.js</code>
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-title">Distribuidor de horas</span>
+    <div style="display:flex;align-items:center;gap:6px"><label>Data ref.:</label><input type="date" id="log-date"></div>
+    <button class="btn btn-primary" onclick="fetchIssues()">↻ Buscar Issues</button>
+  </div>
+  <div id="log-error" class="error-box" style="display:none"></div>
+  <div id="stats-bar" class="stats-bar" style="display:none">
+    <div class="stat-card"><div class="stat-val" id="stat-logged" style="color:var(--warning)">0h</div><div class="stat-lbl" id="stat-logged-lbl">já apontei</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-remaining" style="color:var(--accent2)">8h30</div><div class="stat-lbl">restam</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-distributed">0h</div><div class="stat-lbl">distribuídas</div></div>
+
+    <div style="flex:1"></div>
+    <button class="btn btn-success" onclick="logAll()">✓ Lançar tudo</button>
+  </div>
+  <div id="log-progress" class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="log-pbar" style="width:0%"></div></div>
+    <div class="progress-steps" id="log-steps"></div>
+  </div>
+  <div id="log-empty" class="empty-msg"><span class="ico">🎯</span>Configure as credenciais e clique em "Buscar Issues"</div>
+  <div id="adm-section" style="display:none"><div class="section-lbl">🗂 Administrativo — HADM</div><div class="issue-list" id="adm-list"></div></div>
+  <div id="hcm-section" style="display:none"><div class="section-lbl">🚀 HCMDOF — Issues elegíveis</div><div class="issue-list" id="hcm-list"></div></div>
+</div>
+
+<!-- PAGE: TEAM -->
+<div class="page" id="page-team">
+  <div class="info-note">
+    Apontamentos filtrados por assignee dos membros do time — considera qualquer issue do Jira.
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-title">Horas do Time — mensal</span>
+    <div style="display:flex;align-items:center;gap:6px"><label>Mês:</label><input type="month" id="team-month"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <label>Membro:</label>
+      <select id="team-member-filter" style="font-size:12px;padding:5px 8px">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="fetchTeam()">↻ Buscar</button>
+  </div>
+  <div id="team-error" class="error-box" style="display:none"></div>
+  <div id="team-progress" class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="team-pbar" style="width:0%"></div></div>
+    <div class="progress-steps" id="team-steps"></div>
+  </div>
+  <div id="team-empty" class="empty-msg"><span class="ico">📊</span>Selecione o mês e clique em "Buscar"</div>
+  <div id="team-content" style="display:none">
+    <div class="week-tabs" id="week-tabs"></div>
+    <div class="week-tabs" id="day-tabs" style="display:none;margin-top:-6px;padding-left:12px;border-left:2px solid var(--border2)"></div>
+    <div class="chart-container">
+      <div class="chart-title" id="chart-title">Horas por pessoa — semana</div>
+      <div style="position:relative;height:300px"><canvas id="team-chart"></canvas></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title" id="table-title">Detalhe por membro</div>
+      <table class="member-table">
+        <thead><tr><th>Membro</th><th>Esperado</th><th>Apontado</th><th>%</th><th style="min-width:100px">Progresso</th><th>Diff</th></tr></thead>
+        <tbody id="member-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const APP_VERSION='1.3.0';
+const DEFAULT_TEAM=['mauro.ramos','fernando.zimmermann','diegof.silva','leonardo.correa','douglas.scardueli','marcio.poffo'];
+const COLORS=['#6366f1','#10b981','#f59e0b','#38bdf8','#f472b6','#a78bfa'];
+const DEFAULT_TOTAL_DAY=8.5;
+const DEFAULT_OVER_LIMIT=27;
+const TYPE_ORDER={Bug:0,Story:1,Feature:2,Epic:3};
+const DEFAULT_OFF=new Set(['Feature','Epic']);
+const PROXY='http://localhost:3000/proxy';
+
+const DEFAULT_JQL_MAIN=`project = HCMDOF AND status in ("To Do","In Progress","Code Review","To Do Review","Review") AND issuetype in (Bug, Story, Feature, Epic) ORDER BY issuetype ASC, priority DESC, updated DESC`;
+const DEFAULT_JQL_SPRINT=`project = HCMDOF AND sprint in openSprints() AND status != Done AND issuetype in (Bug, Story, Feature, Epic) ORDER BY issuetype ASC, priority DESC, updated DESC`;
+const DEFAULT_JQL_ADM=`project = HADM AND resolution = Unresolved and summary ~ HCM ORDER BY summary ASC, key ASC, priority DESC, updated DESC`;
+
+
+let cfg={
+  url:'https://jira.senior.com.br',user:'',pass:'',
+  team:[...DEFAULT_TEAM],
+  totalDay:DEFAULT_TOTAL_DAY,
+  overLimit:DEFAULT_OVER_LIMIT,
+  jqlMain:DEFAULT_JQL_MAIN,
+  jqlSprint:DEFAULT_JQL_SPRINT,
+  jqlAdm:DEFAULT_JQL_ADM,
+};
+
+// derivados dinâmicos
+function getTeam(){return(cfg.team&&cfg.team.length)?cfg.team:DEFAULT_TEAM;}
+function getTotalDay(){return cfg.totalDay||DEFAULT_TOTAL_DAY;}
+function getOverLimit(){return cfg.overLimit||DEFAULT_OVER_LIMIT;}
+function getJqlMain(){return cfg.jqlMain||DEFAULT_JQL_MAIN;}
+function getJqlSprint(){return cfg.jqlSprint||DEFAULT_JQL_SPRINT;}
+function getJqlAdm(){return cfg.jqlAdm||DEFAULT_JQL_ADM;}
+const TOTAL_DAY=8.5; // mantido para compatibilidade — use getTotalDay() nas queries
+
+let ls={issues:[],admIssues:[],hours:{},enabled:{},alreadyLogged:{},submitting:null,submitResult:{}};
+let teamChart=null,teamData={},teamLogs={},weekDays={},selWeek='all',selDay=null;
+
+// utils
+function fmtH(h){if(!h||isNaN(h)||h<=0)return'0h';const hh=Math.floor(h),mm=Math.round((h-hh)*60);return mm?`${hh}h${String(mm).padStart(2,'0')}`:`${hh}h`;}
+function getEaster(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da);}
+function brHolidays(y){const e=getEaster(y),o=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};return new Set([`${y}-01-01`,`${y}-04-21`,`${y}-05-01`,`${y}-09-07`,`${y}-10-12`,`${y}-11-02`,`${y}-11-15`,`${y}-11-20`,`${y}-12-25`,o(e,-47),o(e,-2),o(e,60)]);}
+function isWD(d){const dw=d.getDay();if(dw===0||dw===6)return false;return!brHolidays(d.getFullYear()).has(d.toISOString().slice(0,10));}
+function prevWD(from){const d=new Date(from);d.setDate(d.getDate()-1);while(!isWD(d))d.setDate(d.getDate()-1);return d;}
+function toISO(d){return d.toISOString().slice(0,10);}
+function getWk(ds){
+  // Parsear como data local (não UTC) para evitar off-by-one em fusos negativos
+  const parts=ds.split('-');
+  const d=new Date(+parts[0],+parts[1]-1,+parts[2]);
+  d.setDate(d.getDate()+3-(d.getDay()+6)%7);
+  const w1=new Date(d.getFullYear(),0,4);
+  return'W'+String(1+Math.round(((d-w1)/86400000-3+(w1.getDay()+6)%7)/7)).padStart(2,'0');
+}
+function wkLabel(wk,year){const n=parseInt(wk.slice(1));const j4=new Date(year,0,4);const w1m=new Date(j4);w1m.setDate(j4.getDate()-(j4.getDay()+6)%7);const mon=new Date(w1m);mon.setDate(w1m.getDate()+(n-1)*7);const sun=new Date(mon);sun.setDate(mon.getDate()+6);return`${mon.getDate().toString().padStart(2,'0')}/${(mon.getMonth()+1).toString().padStart(2,'0')} – ${sun.getDate().toString().padStart(2,'0')}/${(sun.getMonth()+1).toString().padStart(2,'0')}`;}
+
+// proxy fetch
+function jFetch(path,method='GET',body=null){
+  const opts={method,headers:{'Authorization':'Basic '+btoa(cfg.user+':'+cfg.pass),'Content-Type':'application/json'}};
+  if(body)opts.body=JSON.stringify(body);
+  return fetch(`${PROXY}?url=${encodeURIComponent(cfg.url+path)}`,opts);
+}
+
+// init
+window.onload=()=>{
+  const today=new Date(),defRef=prevWD(today);
+  document.getElementById('log-date').value=toISO(defRef);
+  document.getElementById('team-month').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  try{const s=localStorage.getItem('squad_cfg2');if(s){const p=JSON.parse(s);cfg={...cfg,...p};}}catch(e){}
+  document.getElementById('cfg-url').value=cfg.url;
+  document.getElementById('cfg-user').value=cfg.user;
+  document.getElementById('cfg-pass').value=cfg.pass;
+  document.getElementById('cfg-team').value=getTeam().join('\n');
+  document.getElementById('cfg-hours').value=getTotalDay();
+  document.getElementById('cfg-overlimit').value=getOverLimit();
+  document.getElementById('cfg-jql-main').value=getJqlMain();
+  document.getElementById('cfg-jql-sprint').value=getJqlSprint();
+  document.getElementById('cfg-jql-adm').value=getJqlAdm();
+  updateMemberSelect();
+  // restaurar cache do time — invalida se versão mudou
+  try{
+    const c=localStorage.getItem('squad_team_cache');
+    if(c){
+      const p=JSON.parse(c);
+      if(p.version!==APP_VERSION){
+        localStorage.removeItem('squad_team_cache');
+        console.log('[cache] invalidado — versão mudou para',APP_VERSION);
+      } else {
+        teamData=p.teamData||{};teamLogs=p.teamLogs||{};weekDays=p.weekDays||{};
+        const mv=p.month||'';
+        if(mv){
+          document.getElementById('team-month').value=mv;
+          const[year,month]=mv.split('-').map(Number);
+          const mwdRaw=p.mwdDays||{};
+        const mwd=Object.keys(weekDays).reduce((acc,wk)=>{acc[wk]=mwdRaw[wk]||Array(weekDays[wk]).fill(null);return acc;},{});
+        window.mwdGlobal=mwd;
+          const saved=p.savedAt?new Date(p.savedAt):null;
+          const ago=saved?Math.round((Date.now()-saved)/60000):null;
+          const ageMsg=ago!=null?(ago<60?`${ago}min atrás`:`${Math.round(ago/60)}h atrás`):'';
+          selWeek='all';
+          renderTeam(year,month,mwd);
+          const toolbar=document.querySelector('#page-team .toolbar');
+          const old=document.getElementById('cache-note');if(old)old.remove();
+          const note=document.createElement('span');
+          note.id='cache-note';note.style.cssText='font-size:10px;color:var(--text3);';
+          note.textContent=`cache ${ageMsg}`;
+          toolbar.appendChild(note);
+        }
+      }
+    }
+  }catch(e){}
+  // auto-load: dispara fetch automático se credenciais já estiverem salvas
+  if(cfg.user&&cfg.pass){
+    fetchIssues();
+    fetchTeam();
+  }
+};
+
+function setCfgTab(t){
+  ['jira','team','queries'].forEach(n=>{
+    document.getElementById('ctab-'+n).classList.toggle('active',n===t);
+    document.getElementById('cpanel-'+n).style.display=n===t?'':'none';
+  });
+}
+
+function saveCfg(){
+  cfg.url=document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  cfg.user=document.getElementById('cfg-user').value.trim();
+  cfg.pass=document.getElementById('cfg-pass').value;
+  // time
+  const teamRaw=document.getElementById('cfg-team').value;
+  cfg.team=teamRaw.trim()?teamRaw.split('\n').map(s=>s.trim()).filter(Boolean):[...DEFAULT_TEAM];
+  cfg.totalDay=parseFloat(document.getElementById('cfg-hours').value)||DEFAULT_TOTAL_DAY;
+  cfg.overLimit=parseInt(document.getElementById('cfg-overlimit').value)||DEFAULT_OVER_LIMIT;
+  // queries — validar antes de salvar
+  let qOk=true;
+  ['main','sprint','adm'].forEach(k=>{
+    const val=document.getElementById('cfg-jql-'+k).value.trim();
+    const errEl=document.getElementById('jql-'+k+'-err');
+    if(val&&val.length<10){errEl.textContent='Query muito curta — verifique a sintaxe';errEl.style.display='block';qOk=false;}
+    else{errEl.style.display='none';}
+  });
+  if(!qOk)return;
+  cfg.jqlMain=document.getElementById('cfg-jql-main').value.trim()||DEFAULT_JQL_MAIN;
+  cfg.jqlSprint=document.getElementById('cfg-jql-sprint').value.trim()||DEFAULT_JQL_SPRINT;
+  cfg.jqlAdm=document.getElementById('cfg-jql-adm').value.trim()||DEFAULT_JQL_ADM;
+  // atualizar select de membros na aba time
+  updateMemberSelect();
+  localStorage.setItem('squad_cfg2',JSON.stringify(cfg));
+  document.getElementById('cfg-modal').style.display='none';
+}
+
+function updateMemberSelect(){
+  const sel=document.getElementById('team-member-filter');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>'+getTeam().map(m=>`<option value="${m}">${m}</option>`).join('');
+  if(getTeam().includes(cur))sel.value=cur;
+}
+function closeCfgIf(e){if(e.target.id==='cfg-modal')document.getElementById('cfg-modal').style.display='none';}
+function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');document.getElementById('tab-'+n).classList.add('active');}
+function showErr(pg,msg){const el=document.getElementById(pg+'-error');el.style.display=msg?'block':'none';if(msg)el.textContent='❌ '+msg;}
+
+// logwork state helpers
+function myLog(){return Object.values(ls.alreadyLogged).reduce((a,b)=>a+b,0);}
+function rem(){return Math.max(0,getTotalDay()-myLog());}
+function totDist(){return Object.values(ls.hours).reduce((a,b)=>a+b,0);}
+
+// --- Progress helpers ---
+function initProgress(pg, steps){
+  const wrap=document.getElementById(pg+'-progress');
+  const stepsEl=document.getElementById(pg+'-steps');
+  const pbar=document.getElementById(pg+'-pbar');
+  wrap.style.display='flex';
+  pbar.style.width='0%';
+  stepsEl.innerHTML=steps.map((s,i)=>`<div class="progress-step" id="${pg}-step-${i}"><span class="step-icon">○</span><span class="step-label">${s}</span><span class="step-count" id="${pg}-step-count-${i}"></span></div>`).join('');
+}
+function setStep(pg, idx, state, count){
+  const el=document.getElementById(`${pg}-step-${idx}`);
+  if(!el)return;
+  const icons={active:'⟳',done:'✓',err:'✗'};
+  el.className=`progress-step ${state}`;
+  el.querySelector('.step-icon').textContent=icons[state]||'○';
+  if(count!=null)el.querySelector('.step-count').textContent=count;
+}
+function setProgress(pg, pct){
+  const pbar=document.getElementById(pg+'-pbar');
+  if(pbar)pbar.style.width=pct+'%';
+}
+function hideProgress(pg){
+  const wrap=document.getElementById(pg+'-progress');
+  if(wrap)wrap.style.display='none';
+}
+
+async function fetchIssues(){
+  if(!cfg.user||!cfg.pass){document.getElementById('cfg-modal').style.display='flex';return;}
+  setLL(true);
+  ['log-empty','stats-bar','adm-section','hcm-section'].forEach(id=>document.getElementById(id).style.display='none');
+  initProgress('log',['Query principal (HCMDOF)','Query sprint corrente','Query administrativa','Worklogs do dia']);
+  try{
+    const refDate=document.getElementById('log-date').value;
+    // Step 0: Query principal
+    setStep('log',0,'active'); setProgress('log',5);
+    let d={issues:[]};
+    try{
+      const r=await jFetch(`/rest/api/2/search?jql=${encodeURIComponent(getJqlMain())}&maxResults=100&fields=summary,status,issuetype,timespent`);
+      if(!r.ok){
+        const errBody=await r.json().catch(()=>({}));
+        const jqlErr=errBody?.errorMessages?.[0]||`HTTP ${r.status}`;
+        throw new Error(`Query principal: ${jqlErr}`);
+      }
+      d=await r.json();
+      setStep('log',0,'done',`${(d.issues||[]).length} issues`);
+    }catch(e){
+      setStep('log',0,'err');
+      if(cfg.jqlMain&&cfg.jqlMain!==DEFAULT_JQL_MAIN){
+        showErr('log',`⚠ Query principal inválida: ${e.message}. Usando query padrão.`);
+        const rFb=await jFetch(`/rest/api/2/search?jql=${encodeURIComponent(DEFAULT_JQL_MAIN)}&maxResults=100&fields=summary,status,issuetype,timespent`);
+        if(rFb.ok){d=await rFb.json();setStep('log',0,'done',`${(d.issues||[]).length} issues (fallback)`);}
+      } else {throw e;}
+    }
+    setProgress('log',25);
+    // Step 1: Query sprint
+    setStep('log',1,'active');
+    let dSprint={issues:[]};
+    try{
+      const rSprint=await jFetch(`/rest/api/2/search?jql=${encodeURIComponent(getJqlSprint())}&maxResults=100&fields=summary,status,issuetype,timespent`);
+      if(rSprint.ok){dSprint=await rSprint.json();setStep('log',1,'done',`${(dSprint.issues||[]).length} issues`);}
+      else{const eb=await rSprint.json().catch(()=>({}));console.warn('Query sprint falhou:',eb?.errorMessages?.[0]);setStep('log',1,'err');}
+    }catch(e){console.warn('Query sprint erro:',e.message);setStep('log',1,'err');}
+    setProgress('log',45);
+    // Step 2: Query administrativa
+    setStep('log',2,'active');
+    let dA={issues:[]};
+    try{
+      const rA=await jFetch(`/rest/api/2/search?jql=${encodeURIComponent(getJqlAdm())}&maxResults=50&fields=summary,status,issuetype,timespent`);
+      if(rA.ok){dA=await rA.json();setStep('log',2,'done',`${(dA.issues||[]).length} issues`);}
+      else{
+        const eb=await rA.json().catch(()=>({}));
+        const jqlErr=eb?.errorMessages?.[0]||'';
+        if(cfg.jqlAdm&&cfg.jqlAdm!==DEFAULT_JQL_ADM){
+          console.warn('Query ADM inválida, usando padrão:',jqlErr);
+          const rFb=await jFetch(`/rest/api/2/search?jql=${encodeURIComponent(DEFAULT_JQL_ADM)}&maxResults=50&fields=summary,status,issuetype,timespent`);
+          if(rFb.ok){dA=await rFb.json();setStep('log',2,'done',`${(dA.issues||[]).length} issues (fallback)`);}
+          else setStep('log',2,'err');
+        } else setStep('log',2,'err');
+      }
+    }catch(e){console.warn('Query ADM erro:',e.message);setStep('log',2,'err');}
+    setProgress('log',60);
+    // Merge sem duplicatas
+    const seenKeys=new Set();
+    const sprintKeys=new Set((dSprint.issues||[]).map(i=>i.key));
+    const merged=[];
+    for(const iss of [...(d.issues||[]),...(dSprint.issues||[])]){
+      if(!seenKeys.has(iss.key)){seenKeys.add(iss.key);iss._fromSprint=sprintKeys.has(iss.key);merged.push(iss);}
+    }
+    const sorted=merged.sort((a,b)=>(TYPE_ORDER[a.fields?.issuetype?.name]??99)-(TYPE_ORDER[b.fields?.issuetype?.name]??99));
+    const admIss=dA.issues||[];
+    const allIss=[...sorted,...admIss];
+    // Step 3: Worklogs
+    setStep('log',3,'active',`0/${allIss.length}`);
+    const logMap={};
+    let wlDone=0;
+    await Promise.all(allIss.map(async iss=>{
+      try{
+        const wR=await jFetch(`/rest/api/2/issue/${iss.key}/worklog`);
+        if(!wR.ok)return;
+        const wD=await wR.json();
+        const myH=(wD.worklogs||[]).filter(w=>(w.author?.name||'').toLowerCase()===cfg.user.toLowerCase()&&w.started?.slice(0,10)===refDate).reduce((s,w)=>s+(w.timeSpentSeconds||0),0);
+        if(myH>0)logMap[iss.key]=myH/3600;
+      }catch{}
+      wlDone++;
+      setStep('log',3,'active',`${wlDone}/${allIss.length}`);
+      setProgress('log',60+Math.round(wlDone/allIss.length*38));
+    }));
+    setStep('log',3,'done',`${allIss.length} issues`);
+    setProgress('log',100);
+    ls={...ls,issues:sorted,admIssues:admIss,alreadyLogged:logMap,submitResult:{},submitting:null};
+    const en={},nh={};
+    admIss.forEach(i=>{en[i.key]=false;nh[i.key]=0;});
+    sorted.forEach(i=>{
+      const totH=(i.fields?.timespent||0)/3600;
+      const isOverLimit=totH>getOverLimit();
+      en[i.key]=!DEFAULT_OFF.has(i.fields?.issuetype?.name)&&!isOverLimit;
+      nh[i.key]=0;
+    });
+    ls.enabled=en;ls.hours=nh;
+    distAll();renderLog();showErr('log',null);
+    setTimeout(()=>hideProgress('log'),800);
+  }catch(e){showErr('log',e.message);setLL(false);hideProgress('log');}
+}
+
+function distAll(){const all=[...ls.issues,...ls.admIssues];const act=all.filter(i=>ls.enabled[i.key]);const n=act.length;if(!n)return;const r=rem();all.forEach(i=>{ls.hours[i.key]=ls.enabled[i.key]?r/n:0;});}
+
+function redist(key,val){
+  const all=[...ls.issues,...ls.admIssues];
+  const others=all.map(i=>i.key).filter(k=>ls.enabled[k]&&k!==key);
+  const left=Math.max(0,rem()-val);ls.hours[key]=val;
+  const co=others.reduce((s,k)=>s+(ls.hours[k]||0),0);
+  if(co>0){const f=left/co;others.forEach(k=>{ls.hours[k]=Math.max(0,(ls.hours[k]||0)*f);});}
+  else if(others.length){others.forEach(k=>{ls.hours[k]=left/others.length;});}
+  updateStats();
+  others.forEach(k=>{const sl=document.getElementById('sl-'+k),hv=document.getElementById('hv-'+k);if(sl)sl.value=ls.hours[k].toFixed(2);if(hv)hv.textContent=fmtH(ls.hours[k]);});
+}
+
+function toggleEn(key){ls.enabled[key]=!ls.enabled[key];distAll();renderLog();}
+
+function updateStats(){
+  const myL=myLog(),r=rem(),tot=totDist();
+  const refDate=document.getElementById('log-date').value;
+  document.getElementById('stat-logged').textContent=fmtH(myL);
+  document.getElementById('stat-logged-lbl').textContent=`apontei em ${refDate.slice(8)}.${refDate.slice(5,7)}`;
+  document.getElementById('stat-remaining').textContent=fmtH(r);
+  const el=document.getElementById('stat-distributed');
+  el.textContent=fmtH(tot);el.style.color=Math.abs(tot-r)<0.1?'var(--success)':tot>r?'var(--danger)':'var(--warning)';
+
+}
+
+function renderLog(){
+  setLL(false);
+  const all=[...ls.issues,...ls.admIssues];const has=all.length>0;
+  document.getElementById('log-empty').style.display=has?'none':'block';
+  document.getElementById('stats-bar').style.display=has?'flex':'none';
+  document.getElementById('adm-section').style.display=ls.admIssues.length?'block':'none';
+  document.getElementById('hcm-section').style.display=ls.issues.length?'block':'none';
+  if(!has)return;updateStats();
+  document.getElementById('adm-list').innerHTML=ls.admIssues.map(iRowH).join('');
+  document.getElementById('hcm-list').innerHTML=ls.issues.map(iRowH).join('');
+}
+
+function iRowH(iss){
+  const key=iss.key,h=ls.hours[key]||0,en=ls.enabled[key]!==false;
+  const type=iss.fields?.issuetype?.name||'',status=iss.fields?.status?.name||'';
+  const totH=(iss.fields?.timespent||0)/3600,aH=ls.alreadyLogged[key]||0;
+  const isOver=totH>getOverLimit();
+  const res=ls.submitResult[key];
+  const tc={Bug:'t-bug',Story:'t-story',Feature:'t-feature',Epic:'t-epic'}[type]||'t-story';
+  const sum=(iss.fields?.summary||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const stCls={'To Do':'st-todo','In Progress':'st-inprogress','Code Review':'st-codereview','To Do Review':'st-todoreview','Review':'st-review','Done':'st-done'}[status]||'st-other';
+  const bCls=res==='ok'?' ok':res?' err':'';
+  const bTxt=ls.submitting===key?'…':res==='ok'?'✓':res?'✗':'Log';
+  const sprintBadge=iss._fromSprint?`<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:#1a2e1a;color:#4ade80;border:1px solid #166534;flex-shrink:0">sprint</span>`:'';
+  const overBadge=isOver?`<span title="Issue com mais de ${getOverLimit()}h apontadas (${fmtH(totH)})" style="font-size:9px;padding:2px 7px;border-radius:3px;background:#450a0a;color:#ff6b6b;border:1px solid #ef4444;flex-shrink:0;font-weight:700;letter-spacing:.03em;box-shadow:0 0 6px #ef444466">⚠ ${fmtH(totH)}</span>`:'';
+  const rowCls=isOver?'over-limit':en?'':'off';
+  return `<div class="irow ${rowCls}" id="row-${key}">
+    <input type="checkbox" ${en?'checked':''} onchange="toggleEn('${key}')" style="flex-shrink:0;cursor:pointer;accent-color:#6366f1">
+    <span class="type-badge ${tc}">${type.slice(0,5)}</span>
+    <span class="key-lbl"><a href="${cfg.url}/browse/${key}" target="_blank" title="Abrir no Jira">${key}</a></span>
+    <span class="st-pill ${stCls}">${status}</span>
+    ${sprintBadge}
+    ${overBadge}
+    <span class="summary-lbl" title="${sum}">${iss.fields?.summary||''}</span>
+    <span class="meta-lbl">${totH>0?'tot '+fmtH(totH):''} ${aH>0?`<span style="color:var(--warning)">eu ${fmtH(aH)}</span>`:''}</span>
+    <div class="slider-wrap">
+      <input type="range" id="sl-${key}" min="0" max="8.5" step="0.25" value="${h.toFixed(2)}" ${en?'':'disabled'}
+        oninput="redist('${key}',parseFloat(this.value));document.getElementById('hv-${key}').textContent=fmtH(parseFloat(this.value))">
+    </div>
+    <span class="h-val" id="hv-${key}">${fmtH(h)}</span>
+    <button class="btn btn-sm${bCls}" onclick="logWork('${key}',${h})" ${ls.submitting===key||!en||h<=0?'disabled':''}>${bTxt}</button>
+  </div>`;
+}
+
+async function logWork(key,h){
+  if(h<=0)return;
+  const refDate=document.getElementById('log-date').value;
+  ls.submitting=key;
+  const btn=document.querySelector(`#row-${key} button`);
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  try{
+    const r=await jFetch(`/rest/api/2/issue/${key}/worklog`,'POST',{timeSpentSeconds:Math.round(h*3600),started:`${refDate}T09:00:00.000+0000`,comment:'Squad Logwork'});
+    ls.submitResult[key]=r.ok?'ok':'err';
+  }catch{ls.submitResult[key]='err';}
+  ls.submitting=null;
+  const res=ls.submitResult[key];
+  if(btn){btn.disabled=false;btn.textContent=res==='ok'?'✓':'✗';btn.className='btn btn-sm'+(res==='ok'?' ok':' err');}
+}
+
+async function logAll(){
+  const all=[...ls.issues,...ls.admIssues].filter(i=>ls.enabled[i.key]&&(ls.hours[i.key]||0)>0);
+  for(const iss of all)await logWork(iss.key,ls.hours[iss.key]);
+}
+
+function setLL(v){
+  // log-loading substituído por log-progress — noop mantido para compatibilidade
+}
+
+// team page
+async function fetchTeam(){
+  if(!cfg.user||!cfg.pass){document.getElementById('cfg-modal').style.display='flex';return;}
+  const mv=document.getElementById('team-month').value;
+  const[year,month]=mv.split('-').map(Number);
+  const filterMember=document.getElementById('team-member-filter').value;
+  const activeTeam=filterMember?[filterMember]:getTeam();
+  initProgress('team',[
+    `Issues por membro (${activeTeam.length})`,
+    'Worklogs por issue',
+  ]);
+  document.getElementById('team-empty').style.display='none';
+  document.getElementById('team-content').style.display='none';
+  try{
+    const start=`${mv}-01`,lastDay=new Date(year,month,0).getDate(),end=`${mv}-${String(lastDay).padStart(2,'0')}`;
+    const hols=brHolidays(year);
+    const mwd={};
+    for(let day=1;day<=lastDay;day++){
+      const d=new Date(year,month-1,day);const dw=d.getDay();
+      if(dw===0||dw===6)continue;const iso=toISO(d);if(hols.has(iso))continue;
+      const wk=getWk(iso);if(!mwd[wk])mwd[wk]=[];mwd[wk].push(iso);
+    }
+    const md={};
+    const ml={};
+    activeTeam.forEach(m=>{md[m]={};ml[m]=[];Object.keys(mwd).forEach(wk=>{md[m][wk]=0;});});
+    // Step 0: issues por membro
+    setStep('team',0,'active',`0/${activeTeam.length}`);
+    setProgress('team',5);
+    let mDone=0;
+    const issueSearches=await Promise.all(activeTeam.map(m=>{
+      const jql=`worklogDate >= "${start}" AND worklogAuthor = "${m}" ORDER BY updated DESC`;
+      return jFetch(`/rest/api/2/search?jql=${encodeURIComponent(jql)}&maxResults=200&fields=summary`)
+        .then(r=>r.ok?r.json():Promise.resolve({issues:[]}))
+        .catch(()=>({issues:[]}))
+        .finally(()=>{mDone++;setStep('team',0,'active',`${mDone}/${activeTeam.length}`);setProgress('team',5+Math.round(mDone/activeTeam.length*35));});
+    }));
+    const issueMap=new Map();
+    issueSearches.forEach(sd=>(sd.issues||[]).forEach(i=>{if(!issueMap.has(i.key))issueMap.set(i.key,i);}));
+    const issues=[...issueMap.values()];
+    setStep('team',0,'done',`${issues.length} issues`);
+    setProgress('team',40);
+    console.log('[fetchTeam] issues da JQL:', issues.map(i=>i.key));
+    console.log('[fetchTeam] start:', start, 'end:', end, 'mwd weeks:', Object.keys(mwd));
+    // Step 1: worklogs por issue
+    setStep('team',1,'active',`0/${issues.length}`);
+    let iDone=0;
+    await Promise.all(issues.map(async iss=>{
+      try{
+        let wStart=0,worklogs=[];
+        while(true){
+          const wR=await jFetch(`/rest/api/2/issue/${iss.key}/worklog?startAt=${wStart}&maxResults=1000`);
+          if(!wR.ok)break;
+          const wD=await wR.json();
+          worklogs=[...worklogs,...(wD.worklogs||[])];
+          if(worklogs.length>=(wD.total||0)||!(wD.worklogs||[]).length)break;
+          wStart+=wD.maxResults||1000;
+        }
+        worklogs.forEach(w=>{
+          const author=(w.author?.name||'').toLowerCase();
+          const ds=w.started?.slice(0,10);
+          const wk=ds?getWk(ds):null;
+          if(iss.key==='HCMDOF-872'){
+            console.log(`[872] author=${author} ds=${ds} wk=${wk} inTeam=${activeTeam.includes(author)} inRange=${ds>=start&&ds<=end} inMwd=${!!(wk&&mwd[wk])} h=${w.timeSpentSeconds/3600}`);
+          }
+          if(!activeTeam.includes(author))return;
+          if(!ds||ds<start||ds>end)return;
+          if(!wk||!mwd[wk])return;
+          const h=(w.timeSpentSeconds||0)/3600;
+          md[author][wk]=(md[author][wk]||0)+h;
+          ml[author].push({date:ds,issueKey:iss.key,issueSummary:iss.fields?.summary||iss.key,hours:h});
+        });
+      }catch{}
+      iDone++;
+      setStep('team',1,'active',`${iDone}/${issues.length}`);
+      setProgress('team',40+Math.round(iDone/issues.length*58));
+    }));
+    setStep('team',1,'done',`${issues.length} issues`);
+    setProgress('team',100);
+    activeTeam.forEach(m=>{if(ml[m])ml[m].sort((a,b)=>a.date.localeCompare(b.date));});
+    teamData=md;teamLogs=ml;weekDays={};Object.entries(mwd).forEach(([wk,days])=>{weekDays[wk]=days.length;});
+    selWeek='all';selDay=null;
+    window.mwdGlobal=mwd;
+    renderTeam(year,month,mwd);showErr('team',null);
+    try{localStorage.setItem('squad_team_cache',JSON.stringify({version:APP_VERSION,teamData,teamLogs,weekDays,mwdDays:Object.fromEntries(Object.entries(mwd).map(([k,v])=>[k,v])),month:mv,savedAt:new Date().toISOString()}));}catch(e){}
+    setTimeout(()=>hideProgress('team'),800);
+  }catch(e){showErr('team',e.message);hideProgress('team');}
+}
+
+function renderTeam(year,month,mwd){
+  const weeks=Object.keys(mwd).sort();
+  document.getElementById('team-content').style.display='block';
+  const tabsEl=document.getElementById('week-tabs');
+  tabsEl.innerHTML=`<button class="week-tab active" onclick="selW('all',${year},${month},mwdGlobal)">Todo o mês</button>`
+    +weeks.map(wk=>`<button class="week-tab" id="wt-${wk}" onclick="selW('${wk}',${year},${month},mwdGlobal)">${wk} · ${wkLabel(wk,year)}</button>`).join('');
+  window.mwdGlobal=mwd;
+  renderCA(year,month,weeks,mwd);
+}
+
+function selW(wk,year,month,mwd){
+  selWeek=wk;selDay=null;
+  document.querySelectorAll('.week-tab').forEach(t=>t.classList.remove('active'));
+  (wk==='all'?document.querySelector('.week-tab'):document.getElementById('wt-'+wk))?.classList.add('active');
+  // atualizar day-tabs
+  const dayTabsEl=document.getElementById('day-tabs');
+  if(wk==='all'){
+    dayTabsEl.style.display='none';dayTabsEl.innerHTML='';
+  } else {
+    const days=(mwd[wk]||[]).filter(d=>d);
+    dayTabsEl.style.display=days.length?'flex':'none';
+    dayTabsEl.innerHTML=days.map(d=>{
+      const[y,mo,dd]=d.split('-');
+      const dow=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(+y,+mo-1,+dd).getDay()];
+      return `<button class="week-tab" id="dt-${d}" onclick="selD('${d}',${year},${month})">${dow} ${dd}/${mo}</button>`;
+    }).join('');
+  }
+  renderCA(year,month,Object.keys(weekDays).sort(),mwd||window.mwdGlobal||{});
+}
+
+function selD(day,year,month){
+  selDay=day;
+  document.querySelectorAll('#day-tabs .week-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('dt-'+day)?.classList.add('active');
+  renderCA(year,month,Object.keys(weekDays).sort(),window.mwdGlobal||{});
+}
+
+function renderCA(year,month,weeks,mwd){
+  mwd=mwd||window.mwdGlobal||{};
+  const isDay=!!selDay;
+  const isAll=!isDay&&selWeek==='all';
+  const isWeek=!isDay&&!isAll;
+  const dWeeks=isAll?weeks:[selWeek];
+
+  const filterMember=document.getElementById('team-member-filter')?.value||'';
+  const viewTeam=filterMember?[filterMember]:getTeam();
+  const viewColors=viewTeam.map(m=>COLORS[getTeam().indexOf(m)%COLORS.length]);
+
+  // títulos
+  if(isDay){
+    const[y,mo,d]=selDay.split('-');
+    document.getElementById('chart-title').textContent=`Horas apontadas — ${d}/${mo}/${y}`;
+    document.getElementById('table-title').textContent=`Detalhe — ${d}/${mo}/${y}`;
+  } else if(isAll){
+    document.getElementById('chart-title').textContent=`Horas apontadas por semana — ${String(month).padStart(2,'0')}/${year}`;
+    document.getElementById('table-title').textContent=`Resumo do mês — ${String(month).padStart(2,'0')}/${year}`;
+  } else {
+    document.getElementById('chart-title').textContent=`Horas — ${selWeek} · ${wkLabel(selWeek,year)}`;
+    document.getElementById('table-title').textContent=`Detalhe — ${selWeek}`;
+  }
+
+  let labels=[], datasets=[];
+
+  if(isDay){
+    // barras por pessoa, uma por dataset para ter legenda correta
+    labels=viewTeam.map(m=>m.split('.')[0]);
+    viewTeam.forEach((m,mi)=>{
+      const dayH=+(((teamLogs[m]||[]).filter(l=>l.date===selDay).reduce((s,l)=>s+l.hours,0)).toFixed(2));
+      datasets.push({
+        label:m.split('.')[0],
+        data:viewTeam.map((mm)=>mm===m?dayH:null),
+        backgroundColor:viewColors[mi]+'bb',
+        borderColor:viewColors[mi],
+        borderWidth:1,type:'bar',yAxisID:'y',
+        skipNull:true,
+      });
+    });
+    datasets.push({
+      label:'Esperado',data:viewTeam.map(()=>getTotalDay()),
+      type:'line',borderColor:'#f43f5e',borderDash:[5,4],borderWidth:2,
+      pointRadius:3,pointBackgroundColor:'#f43f5e',backgroundColor:'transparent',
+      yAxisID:'y',tension:0,order:0
+    });
+  } else if(isAll){
+    labels=weeks.map(wk=>`${wk}\n${wkLabel(wk,year)}`);
+    viewTeam.forEach((m,mi)=>{
+      datasets.push({label:m.split('.')[0],data:weeks.map(wk=>+((teamData[m]?.[wk]||0).toFixed(2))),backgroundColor:viewColors[mi]+'bb',borderColor:viewColors[mi],borderWidth:1,type:'bar',yAxisID:'y'});
+    });
+    datasets.push({label:'Esperado',data:weeks.map(wk=>+((weekDays[wk]||0)*getTotalDay()).toFixed(2)),type:'line',borderColor:'#f43f5e',borderDash:[5,4],borderWidth:2,pointRadius:4,pointBackgroundColor:'#f43f5e',backgroundColor:'transparent',yAxisID:'y',tension:.3,order:0});
+  } else {
+    // visão semana: eixo X = dias úteis da semana, barras agrupadas por pessoa
+    const weekDaysList=(mwd[selWeek]||[]).filter(d=>d).sort();
+    const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    labels=weekDaysList.map(d=>{
+      const[y,mo,dd]=d.split('-');
+      return `${DOW[new Date(+y,+mo-1,+dd).getDay()]} ${dd}/${mo}`;
+    });
+    viewTeam.forEach((m,mi)=>{
+      datasets.push({
+        label:m.split('.')[0],
+        data:weekDaysList.map(d=>{
+          const h=(teamLogs[m]||[]).filter(l=>l.date===d).reduce((s,l)=>s+l.hours,0);
+          return +h.toFixed(2);
+        }),
+        backgroundColor:viewColors[mi]+'bb',
+        borderColor:viewColors[mi],
+        borderWidth:1,type:'bar',yAxisID:'y',
+      });
+    });
+    datasets.push({
+      label:'Esperado',
+      data:weekDaysList.map(()=>getTotalDay()),
+      type:'line',borderColor:'#f43f5e',borderDash:[5,4],borderWidth:2,
+      pointRadius:4,pointBackgroundColor:'#f43f5e',backgroundColor:'transparent',
+      yAxisID:'y',tension:0,order:0
+    });
+  }
+
+  if(teamChart)teamChart.destroy();
+  teamChart=new Chart(document.getElementById('team-chart').getContext('2d'),{
+    data:{labels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{labels:{color:'#8892a4',font:{family:'JetBrains Mono',size:11},boxWidth:12,padding:14}},
+        tooltip:{backgroundColor:'#181c2a',borderColor:'#2a3050',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#8892a4',titleFont:{family:'JetBrains Mono',size:11},bodyFont:{family:'JetBrains Mono',size:11},callbacks:{label:c=>` ${c.dataset.label}: ${fmtH(c.parsed.y)}`}}
+      },
+      scales:{
+        x:{ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:10},maxRotation:30},grid:{color:'#1e2438'}},
+        y:{ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:10},callback:v=>fmtH(v)},grid:{color:'#1e2438'},beginAtZero:true}
+      }
+    }
+  });
+
+  // tabela resumo
+  document.getElementById('member-tbody').innerHTML=viewTeam.map((m)=>{
+    const mi=getTeam().indexOf(m)%COLORS.length;
+    let exp=0,act=0;
+    if(isDay){
+      exp=getTotalDay();
+      act=(teamLogs[m]||[]).filter(l=>l.date===selDay).reduce((s,l)=>s+l.hours,0);
+    } else {
+      dWeeks.forEach(wk=>{exp+=(weekDays[wk]||0)*getTotalDay();act+=teamData[m]?.[wk]||0;});
+    }
+    const pct=exp>0?Math.round(act/exp*100):0;
+    const diff=act-exp;
+    const pc=pct>=95?'pct-ok':pct>=60?'pct-warn':'pct-low';
+    const bc=pct>=95?'':pct>=60?'over':'under';
+    const mid=`detail-${m.replace(/\./g,'-')}`;
+
+    const logs=(teamLogs[m]||[]).filter(l=>{
+      if(isDay) return l.date===selDay;
+      if(isAll) return true;
+      return getWk(l.date)===selWeek;
+    });
+
+    const byDate={};
+    logs.forEach(l=>{if(!byDate[l.date])byDate[l.date]=[];byDate[l.date].push(l);});
+    const detailRows=Object.entries(byDate).sort(([a],[b])=>a.localeCompare(b)).map(([date,entries])=>{
+      const[y,mo,d]=date.split('-');
+      const dateLabel=`${d}/${mo}`;
+      return entries.map(e=>`<tr>
+        <td class="dt-date">${dateLabel}</td>
+        <td class="dt-key"><a href="${cfg.url}/browse/${e.issueKey}" target="_blank" title="Abrir no Jira">${e.issueKey}</a></td>
+        <td class="dt-sum" title="${e.issueSummary.replace(/"/g,'&quot;')}">${e.issueSummary}</td>
+        <td class="dt-h">${fmtH(e.hours)}</td>
+      </tr>`).join('');
+    }).join('');
+
+    return `<tr style="cursor:pointer" onclick="toggleDetail('${mid}',this)">
+      <td style="display:flex;align-items:center;gap:6px">
+        <span class="expand-btn" id="exp-${mid}">▶</span>
+        <span style="width:10px;height:10px;border-radius:50%;background:${COLORS[mi]};display:inline-block;flex-shrink:0"></span>
+        ${m}
+      </td>
+      <td>${fmtH(exp)}</td>
+      <td style="font-weight:600;color:var(--text)">${fmtH(act)}</td>
+      <td><span class="badge-pct ${pc}">${pct}%</span></td>
+      <td><div class="pb-bg" style="width:90px"><div class="pb ${bc}" style="width:${Math.min(100,pct)}%"></div></div></td>
+      <td style="color:${diff>=0?'var(--success)':'var(--danger)'};font-weight:600">${diff>=0?'+':'-'}${fmtH(Math.abs(diff))}</td>
+    </tr>
+    <tr class="detail-row" id="${mid}">
+      <td colspan="6" style="padding:0">
+        <div class="detail-inner">
+          ${logs.length===0
+            ?'<span style="color:var(--text3);font-size:10px">Nenhum apontamento no período</span>'
+            :`<table class="detail-table"><tbody>${detailRows}</tbody></table>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function toggleDetail(id,row){
+  const el=document.getElementById(id);
+  const btn=document.getElementById('exp-'+id);
+  if(!el)return;
+  const open=el.classList.toggle('open');
+  if(btn)btn.textContent=open?'▼':'▶';
+  if(open)row.style.background='var(--bg3)';
+  else row.style.background='';
+}
+</script>
+</body>
+</html>
