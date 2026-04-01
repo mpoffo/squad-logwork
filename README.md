@@ -2,7 +2,7 @@
 
 Ferramenta interna para apontamento de horas e acompanhamento de produtividade do time no Jira Senior (on-premise).
 
-**Versão atual:** v1.3.0
+**Versão atual:** v1.3.1
 
 ---
 
@@ -149,6 +149,7 @@ Testado com **Jira Server 7.7.0** (2018). A busca de worklogs é feita via `work
 
 | Versão | Descrição |
 |--------|-----------|
+| v1.3.1 | Incluído filtro por assign |
 | v1.3.0 | Visão semanal com barras agrupadas por dia e filtragem por membro |
 | v1.2.7 | Barra de progresso com etapas nomeadas e contadores em tempo real |
 | v1.2.6 | Remoção do controle de "alerta de total diário" inexistente |
