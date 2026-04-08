@@ -2,7 +2,11 @@
 
 Ferramenta interna para apontamento de horas e acompanhamento de produtividade do time no Jira Senior (on-premise).
 
+<<<<<<< HEAD
 **Versão atual:** v1.4.0
+=======
+**Versão atual:** v1.3.1
+>>>>>>> 2553ac0a3f094f6005e17867266f1380f186ff53
 
 ---
 
@@ -199,9 +203,14 @@ Testado com **Jira Server 7.7.0** (2018). A busca de worklogs é feita via `work
 
 | Versão | Descrição |
 |--------|-----------|
+<<<<<<< HEAD
 | v1.4.0 | Aba Dedo Duro: dashboard de indicadores JQL com auto-refresh (3h), notificação nativa do browser e drag & drop |
 | v1.3.1 | Avatares de assignee com badge de iniciais e filtro client-side por assignee |
 | v1.3.0 | Badge de assignee nas issues da aba Apontar Horas |
+=======
+| v1.3.1 | Incluído filtro por assign |
+| v1.3.0 | Visão semanal com barras agrupadas por dia e filtragem por membro |
+>>>>>>> 2553ac0a3f094f6005e17867266f1380f186ff53
 | v1.2.7 | Barra de progresso com etapas nomeadas e contadores em tempo real |
 | v1.2.6 | Remoção do controle de "alerta de total diário" inexistente |
 | v1.2.5 | Links clicáveis nas keys das issues (aba Log e detalhamento do Time) |
