@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Atenção > 25h apontadas",
+    "query": "project = \"HCM - Data Office\" AND timespent > 25 AND status not in (Done, Closed) ORDER BY timespent DESC"
+  },
+  {
+    "name": "Features para fechar",
+    "query": "project = HCMDOF AND issuetype = Feature AND status not in (done, Closed) AND NOT issueFunction in linkedIssuesOf(\"project = HCMDOF and status not in (Done, closed)\") AND issueFunction in linkedIssuesOf(\"project = HCMDOF and status in (Done)\")"
+  },
+  {
+    "name": "Entrega não informada",
+    "query": "project = \"HCM - Data Office\" AND Entrega = \"Entrega \\\\ Não Informada\""
+  },
+  {
+    "name": "RTD Estourado",
+    "query": "project = \"HCM - Data Office\" AND \"Lead Time Ready to Deploy\" >= 2 AND status not in (Done, Closed)"
+  },
+  {
+    "name": "Sem feature",
+    "query": "project = \"HCM - Data Office\" AND issueFunction not in linkedIssuesOf(\"issuetype = Feature\", \"é Vinculada à\") AND issuetype not in (Epic, Tradução, Feature, Programação, Pesquisa, \"Teste em par\", Documentação, Discovery) AND (labels is EMPTY OR labels not in (Sustentação))"
+  },
+  {
+    "name": "Sem épico informado",
+    "query": "project = HCMDOF AND \"Epic Link\" is EMPTY AND issuetype != Epic AND issuetype not in (Tradução, \"Teste em par\", Programação, Documentação, Discovery, Pesquisa)"
+  },
+  {
+    "name": "HCMDOF sem tipo de repasse interno na feature",
+    "query": "project = HCMDOF AND issuetype = Feature AND \"Tipo de repasse interno\" is EMPTY ORDER BY cf[10000] ASC"
+  },
+  {
+    "name": "HCMDOF épico sem tipo de demanda",
+    "query": "project = \"HCM - Data Office\" AND \"Type of demand\" is EMPTY"
+  },
+  {
+    "name": "Issue de cliente",
+    "query": "project = \"HCM - Data Office\" AND TicketZendesk is not EMPTY AND status in (Backlog, \"To Do\")"
+  },
+  {
+    "name": "Issue de tradução em backlog",
+    "query": "project = \"HCM - Data Office\" AND issuetype = Tradução AND status = Backlog"
+  }
+]

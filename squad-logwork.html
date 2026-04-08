@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Squad Logwork v1.3.1 — HCMDOF</title>
+<title>Squad Logwork v1.4.0 — HCMDOF</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700&display=swap');
@@ -144,6 +144,54 @@
   .af-badge.active{color:#fff;}
   .af-badge .af-dot{width:16px;height:16px;border-radius:50%;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .af-badge .af-count{font-size:9px;opacity:.7;margin-left:2px;}
+
+  /* ── Dedo Duro ─────────────────────────────────────────── */
+  .dd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;}
+  .dd-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .12s;position:relative;user-select:none;}
+  .dd-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.35);transform:translateY(-1px);}
+  .dd-card.dd-active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)33;}
+  .dd-card.dd-loading{opacity:.6;pointer-events:none;}
+  .dd-card.dd-zero .dd-count{color:var(--success);}
+  .dd-card.dd-warn .dd-count{color:var(--warning);}
+  .dd-card.dd-danger .dd-count{color:var(--danger);}
+  .dd-count{font-family:'Sora',sans-serif;font-size:36px;font-weight:700;line-height:1;margin-bottom:6px;transition:color .2s;}
+  .dd-name{font-size:11px;color:var(--text2);line-height:1.4;}
+  .dd-spin{position:absolute;top:10px;right:12px;font-size:14px;animation:spin .8s linear infinite;display:none;}
+  .dd-card.dd-loading .dd-spin{display:block;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .dd-drag-handle{position:absolute;top:8px;left:8px;color:var(--text3);font-size:11px;cursor:grab;opacity:0;transition:opacity .15s;}
+  .dd-card:hover .dd-drag-handle{opacity:1;}
+  .dd-card.dragging{opacity:.4;border-style:dashed;}
+  .dd-card.drag-over{border-color:var(--accent2);background:var(--bg3);}
+  .dd-detail-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:0;overflow:hidden;}
+  .dd-detail-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3);}
+  .dd-detail-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--text);flex:1;}
+  .dd-detail-count{font-size:11px;color:var(--text3);}
+  .dd-table{width:100%;border-collapse:collapse;font-size:11px;}
+  .dd-table th{padding:6px 10px;text-align:left;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:.05em;white-space:nowrap;}
+  .dd-table td{padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+  .dd-table tr:last-child td{border-bottom:none;}
+  .dd-table tr:hover td{background:var(--bg3);}
+  .dd-table .col-key{white-space:nowrap;font-weight:600;color:#93c5fd;width:100px;}
+  .dd-table .col-key a{color:inherit;text-decoration:none;border-bottom:1px dashed #93c5fd55;}
+  .dd-table .col-key a:hover{color:#bfdbfe;}
+  .dd-table .col-type{width:72px;}
+  .dd-table .col-status{width:110px;}
+  .dd-table .col-epic{width:110px;color:var(--text3);font-size:10px;}
+  .dd-table .col-assign{width:110px;color:var(--text3);}
+  .dd-table .col-lt{width:60px;text-align:right;color:var(--accent2);font-weight:600;}
+  .dd-table .col-ts{width:60px;text-align:right;color:var(--warning);font-weight:600;}
+  .dd-table .col-sum{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dd-file-select{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .dd-file-btn{padding:4px 12px;border-radius:6px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text2);font-family:'JetBrains Mono',monospace;transition:all .12s;}
+  .dd-file-btn:hover{color:var(--text);border-color:var(--border2);filter:brightness(1.2);}
+  .dd-file-btn.selected{background:var(--accent)22;color:var(--accent2);border-color:var(--accent)55;}
+  .dd-empty-files{text-align:center;padding:40px;color:var(--text3);font-size:12px;}
+
+  /* ── Indicador de próxima atualização ──────────────────── */
+  .dd-next-refresh{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+  .dd-refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--success);flex-shrink:0;animation:ddpulse 2s infinite;}
+  @keyframes ddpulse{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
 </head>
 <body>
@@ -216,9 +264,10 @@
 
 <!-- NAV -->
 <div class="nav">
-  <div class="nav-brand">⏱ Squad Logwork <small>HCMDOF · v1.3.1</small></div>
+  <div class="nav-brand">⏱ Squad Logwork <small>HCMDOF · v1.4.0</small></div>
   <button class="tab active" id="tab-log" onclick="showPage('log')">Apontar Horas</button>
   <button class="tab" id="tab-team" onclick="showPage('team')">Horas do Time</button>
+  <button class="tab" id="tab-dd" onclick="showPage('dd')">🔎 Dedo Duro</button>
   <div style="flex:1"></div>
   <button class="btn btn-sm" style="margin:8px 0" onclick="document.getElementById('cfg-modal').style.display='flex'">⚙ Config</button>
 </div>
@@ -295,8 +344,53 @@
   </div>
 </div>
 
+<!-- PAGE: DEDO DURO -->
+<div class="page" id="page-dd">
+  <div class="toolbar">
+    <span class="toolbar-title">🔎 Dedo Duro</span>
+    <div class="dd-file-select" id="dd-file-select">
+      <label>Arquivo:</label>
+      <span id="dd-file-btns" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+      <span id="dd-no-files" style="font-size:11px;color:var(--text3);display:none">Nenhum arquivo encontrado em <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">/dedoduro/</code></span>
+    </div>
+    <button class="btn btn-primary" id="dd-refresh-btn" onclick="ddRun()" style="display:none">↻ Atualizar</button>
+    <span class="dd-next-refresh" id="dd-next-refresh" style="display:none"><span class="dd-refresh-dot"></span><span id="dd-next-refresh-txt"></span></span>
+  </div>
+  <div id="dd-error" class="error-box" style="display:none"></div>
+  <div id="dd-empty" class="empty-msg"><span class="ico">🔎</span>Selecione um arquivo de definições para carregar os indicadores.</div>
+  <div id="dd-content" style="display:none">
+    <div class="dd-grid" id="dd-grid"></div>
+    <div id="dd-detail" style="display:none">
+      <div class="dd-detail-panel">
+        <div class="dd-detail-header">
+          <span class="dd-detail-title" id="dd-detail-title">—</span>
+          <span class="dd-detail-count" id="dd-detail-count"></span>
+          <button class="btn btn-sm" onclick="ddCloseDetail()">✕ Fechar</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="dd-table">
+            <thead>
+              <tr>
+                <th class="col-type">Tipo</th>
+                <th class="col-key">Key</th>
+                <th class="col-status">Status</th>
+                <th class="col-epic">Epic Link</th>
+                <th class="col-sum">Resumo</th>
+                <th class="col-assign">Assignee</th>
+                <th class="col-lt">Lead Time</th>
+                <th class="col-ts">Time Spent</th>
+              </tr>
+            </thead>
+            <tbody id="dd-detail-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const APP_VERSION='1.3.1';
+const APP_VERSION='1.4.0';
 const DEFAULT_TEAM=['mauro.ramos','fernando.zimmermann','diegof.silva','leonardo.correa','douglas.scardueli','marcio.poffo'];
 const COLORS=['#6366f1','#10b981','#f59e0b','#38bdf8','#f472b6','#a78bfa'];
 const DEFAULT_TOTAL_DAY=8.5;
@@ -471,7 +565,7 @@ function updateMemberSelect(){
   if(getTeam().includes(cur))sel.value=cur;
 }
 function closeCfgIf(e){if(e.target.id==='cfg-modal')document.getElementById('cfg-modal').style.display='none';}
-function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');document.getElementById('tab-'+n).classList.add('active');}
+function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');document.getElementById('tab-'+n).classList.add('active');if(n==='dd'&&!ddFiles.length)ddInit();}
 function showErr(pg,msg){const el=document.getElementById(pg+'-error');el.style.display=msg?'block':'none';if(msg)el.textContent='❌ '+msg;}
 
 // logwork state helpers
@@ -1072,6 +1166,382 @@ function toggleDetail(id,row){
   if(open)row.style.background='var(--bg3)';
   else row.style.background='';
 }
-</script>
+
+// ══════════════════════════════════════════════════════════════
+//  DEDO DURO
+// ══════════════════════════════════════════════════════════════
+let ddDefs=[];
+let ddOrder=[];
+let ddResults={};
+let ddActiveCard=null;
+let ddFiles=[];
+let ddSelectedFile='';
+
+const DD_SESSION_KEY='squad_dd_session';
+const DD_SNAPSHOT_KEY='squad_dd_snapshot';
+const DD_REFRESH_MS=3*60*60*1000; // 3 horas
+let ddRefreshTimer=null;
+let ddCountdownTimer=null;
+let ddNextRefreshAt=null;
+
+// ─── Permissão de notificação ────────────────────────────────
+async function ddRequestNotifPermission(){
+  if(!('Notification' in window))return false;
+  if(Notification.permission==='granted')return true;
+  if(Notification.permission==='denied')return false;
+  const result=await Notification.requestPermission();
+  return result==='granted';
+}
+
+function ddNotify(title, body){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const n=new Notification(title,{
+    body,
+    icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="26" font-size="28">🔎</text></svg>',
+    tag:'dedo-duro',
+    renotify:true,
+  });
+  n.onclick=()=>{window.focus();showPage('dd');n.close();};
+}
+
+// ─── Snapshot — guarda contadores da última rodada ───────────
+function ddSaveSnapshot(){
+  const snap={};
+  ddDefs.forEach((_,idx)=>{
+    const res=ddResults[idx];
+    if(res&&!res.error&&typeof res.count==='number') snap[ddDefs[idx].name]=res.count;
+  });
+  try{localStorage.setItem(DD_SNAPSHOT_KEY,JSON.stringify({file:ddSelectedFile,snap,at:Date.now()}));}catch(e){}
+}
+
+function ddLoadSnapshot(){
+  try{
+    const s=localStorage.getItem(DD_SNAPSHOT_KEY);
+    if(!s)return null;
+    const p=JSON.parse(s);
+    if(p.file!==ddSelectedFile)return null;
+    return p.snap||null;
+  }catch(e){return null;}
+}
+
+function ddCheckAndNotify(){
+  const prev=ddLoadSnapshot();
+  if(!prev)return; // primeira rodada, sem comparação
+  const increased=[];
+  ddDefs.forEach((_,idx)=>{
+    const res=ddResults[idx];
+    if(!res||res.error||typeof res.count!=='number')return;
+    const name=ddDefs[idx].name;
+    const before=prev[name];
+    if(before!=null && res.count>before){
+      increased.push({name, before, after:res.count, delta:res.count-before});
+    }
+  });
+  if(!increased.length)return;
+  const title=`🔎 Dedo Duro — ${increased.length} indicador${increased.length>1?'es':''} subiram`;
+  const body=increased.map(i=>`${i.name}: ${i.before} → ${i.after} (+${i.delta})`).join('\n');
+  ddNotify(title, body);
+}
+
+// ─── Auto-refresh ────────────────────────────────────────────
+function ddScheduleRefresh(){
+  clearTimeout(ddRefreshTimer);
+  clearInterval(ddCountdownTimer);
+  ddNextRefreshAt=Date.now()+DD_REFRESH_MS;
+  ddUpdateCountdown();
+  ddCountdownTimer=setInterval(ddUpdateCountdown,30000); // atualiza label a cada 30s
+  ddRefreshTimer=setTimeout(async()=>{
+    ddCheckAndNotify(); // compara ANTES de sobrescrever
+    // roda de novo sem limpar snapshot ainda
+    await ddRunSilent();
+    ddSaveSnapshot();
+    ddScheduleRefresh();
+  },DD_REFRESH_MS);
+}
+
+function ddUpdateCountdown(){
+  const el=document.getElementById('dd-next-refresh-txt');
+  if(!el||!ddNextRefreshAt)return;
+  const ms=ddNextRefreshAt-Date.now();
+  if(ms<=0){el.textContent='atualizando…';return;}
+  const min=Math.round(ms/60000);
+  const h=Math.floor(min/60),m=min%60;
+  el.textContent=h>0?`próx. atualização em ${h}h${m?String(m).padStart(2,'0')+'m':''}`:
+                     `próx. atualização em ${m}min`;
+}
+
+// roda sem limpar ddResults (silencioso, para o auto-refresh)
+async function ddRunSilent(){
+  if(!ddDefs.length)return;
+  const CONCURRENCY=4;
+  const queue=[...ddOrder];
+  async function worker(){while(queue.length){const idx=queue.shift();await ddRunOne(idx);}}
+  await Promise.all(Array.from({length:Math.min(CONCURRENCY,ddDefs.length)},()=>worker()));
+}
+
+// ─── Salvar/restaurar sessão ─────────────────────────────────
+function ddSaveSession(){
+  try{localStorage.setItem(DD_SESSION_KEY,JSON.stringify({file:ddSelectedFile,order:ddOrder}));}catch(e){}
+}
+function ddRestoreSession(){
+  try{
+    const s=localStorage.getItem(DD_SESSION_KEY);
+    if(s){const p=JSON.parse(s);ddSelectedFile=p.file||'';ddOrder=p.order||[];}
+  }catch(e){}
+}
+
+// ─── Inicialização da aba ────────────────────────────────────
+async function ddInit(){
+  ddRestoreSession();
+  await ddRequestNotifPermission();
+  await ddLoadFileList();
+  if(ddSelectedFile&&ddFiles.includes(ddSelectedFile)){
+    await ddSelectFile(ddSelectedFile,true);
+  }
+}
+
+// ─── Lista de arquivos no /dedoduro/ ────────────────────────
+async function ddLoadFileList(){
+  const btnsEl=document.getElementById('dd-file-btns');
+  const noFilesEl=document.getElementById('dd-no-files');
+  btnsEl.innerHTML='';
+  try{
+    const r=await fetch('/dedoduro/_list');
+    if(r.ok){const data=await r.json();ddFiles=data.files||[];}
+    else ddFiles=[];
+  }catch(e){ddFiles=[];}
+  if(!ddFiles.length){noFilesEl.style.display='block';btnsEl.style.display='none';return;}
+  noFilesEl.style.display='none';btnsEl.style.display='flex';
+  btnsEl.innerHTML=ddFiles.map(f=>{
+    const name=f.replace(/\.json$/i,'');
+    const sel=f===ddSelectedFile?'selected':'';
+    return `<button class="dd-file-btn ${sel}" onclick="ddSelectFile('${f}')">${name}</button>`;
+  }).join('');
+}
+
+// ─── Selecionar arquivo ──────────────────────────────────────
+async function ddSelectFile(file,autoRun=false){
+  ddSelectedFile=file;ddSaveSession();
+  document.querySelectorAll('.dd-file-btn').forEach(b=>{
+    b.classList.toggle('selected',b.textContent===file.replace(/\.json$/i,''));
+  });
+  document.getElementById('dd-refresh-btn').style.display='block';
+  try{
+    const r=await fetch(`/dedoduro/${file}`);
+    if(!r.ok)throw new Error(`Erro ao carregar ${file}: HTTP ${r.status}`);
+    ddDefs=await r.json();
+  }catch(e){showDdError(e.message);return;}
+  showDdError(null);
+  if(!ddOrder.length||ddOrder.length!==ddDefs.length) ddOrder=ddDefs.map((_,i)=>i);
+  ddResults={};ddActiveCard=null;
+  renderDdGrid();
+  document.getElementById('dd-empty').style.display='none';
+  document.getElementById('dd-content').style.display='block';
+  document.getElementById('dd-detail').style.display='none';
+  document.getElementById('dd-next-refresh').style.display='flex';
+  await ddRun();
+}
+
+// ─── Rodar todas as queries (manual — salva snapshot e agenda) ─
+async function ddRun(){
+  if(!ddDefs.length)return;
+  ddResults={};ddActiveCard=null;
+  document.getElementById('dd-detail').style.display='none';
+  renderDdGrid();showDdError(null);
+  await ddRunSilent();
+  ddSaveSnapshot();
+  ddScheduleRefresh();
+}
+
+async function ddRunOne(idx){
+  const def=ddDefs[idx];if(!def)return;
+  const card=document.getElementById(`dd-card-${idx}`);
+  if(card){card.classList.add('dd-loading');card.classList.remove('dd-zero','dd-warn','dd-danger');}
+  try{
+    const r=await jFetch(`/rest/api/2/search?jql=${encodeURIComponent(def.query)}&maxResults=200&fields=summary,status,issuetype,assignee,timespent,customfield_10000,customfield_10014,customfield_10015,customfield_10016,created,resolutiondate`);
+    if(!r.ok){const eb=await r.json().catch(()=>({}));throw new Error(eb?.errorMessages?.[0]||`HTTP ${r.status}`);}
+    const data=await r.json();
+    const issues=data.issues||[];
+    ddResults[idx]={count:data.total||issues.length,issues};
+  }catch(e){ddResults[idx]={count:'!',issues:[],error:e.message};}
+  renderDdCard(idx);
+}
+
+// ─── Render grid ────────────────────────────────────────────
+function renderDdGrid(){
+  const grid=document.getElementById('dd-grid');
+  grid.innerHTML=ddOrder.map((idx,pos)=>{
+    const def=ddDefs[idx];
+    if(!def)return'';
+    const res=ddResults[idx];
+    const count=res?res.count:'…';
+    const isError=res&&res.error;
+    const isLoading=!res;
+    let colorCls='';
+    if(res&&!isError){
+      const n=typeof res.count==='number'?res.count:0;
+      colorCls=n===0?'dd-zero':n<=3?'dd-warn':'dd-danger';
+    }
+    const activeCls=ddActiveCard===idx?'dd-active':'';
+    const loadingCls=isLoading?'dd-loading':'';
+    return `<div class="dd-card ${colorCls} ${activeCls} ${loadingCls}"
+      id="dd-card-${idx}"
+      draggable="true"
+      ondragstart="ddDragStart(event,${pos})"
+      ondragover="ddDragOver(event)"
+      ondrop="ddDrop(event,${pos})"
+      ondragleave="ddDragLeave(event)"
+      ondragend="ddDragEnd(event)"
+      onclick="ddCardClick(${idx})">
+      <span class="dd-drag-handle">⠿</span>
+      <span class="dd-spin">⟳</span>
+      <div class="dd-count" style="${isError?'color:var(--danger);font-size:18px':''}">${isError?'ERR':count}</div>
+      <div class="dd-name" title="${(def.name||'').replace(/"/g,'&quot;')}">${def.name||''}</div>
+      ${isError?`<div style="font-size:9px;color:var(--danger);margin-top:4px;line-height:1.3">${res.error.slice(0,80)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderDdCard(idx){
+  const card=document.getElementById(`dd-card-${idx}`);
+  if(!card)return;
+  card.classList.remove('dd-loading');
+  const res=ddResults[idx];
+  if(!res)return;
+  const isError=!!res.error;
+  const n=typeof res.count==='number'?res.count:0;
+  card.classList.remove('dd-zero','dd-warn','dd-danger');
+  if(!isError) card.classList.add(n===0?'dd-zero':n<=3?'dd-warn':'dd-danger');
+  const countEl=card.querySelector('.dd-count');
+  if(countEl){
+    countEl.textContent=isError?'ERR':res.count;
+    countEl.style.fontSize=isError?'18px':'';
+    countEl.style.color=isError?'var(--danger)':'';
+  }
+  const errEl=card.querySelector('[data-err]');
+  if(errEl)errEl.remove();
+  if(isError){
+    const d=document.createElement('div');
+    d.setAttribute('data-err','1');
+    d.style.cssText='font-size:9px;color:var(--danger);margin-top:4px;line-height:1.3';
+    d.textContent=res.error.slice(0,80);
+    card.appendChild(d);
+  }
+  // se este card estiver aberto no detalhe, atualizar
+  if(ddActiveCard===idx) ddShowDetail(idx);
+}
+
+// ─── Clique no card ──────────────────────────────────────────
+function ddCardClick(idx){
+  if(ddActiveCard===idx){
+    ddCloseDetail();
+    return;
+  }
+  ddActiveCard=idx;
+  document.querySelectorAll('.dd-card').forEach(c=>c.classList.remove('dd-active'));
+  document.getElementById(`dd-card-${idx}`)?.classList.add('dd-active');
+  ddShowDetail(idx);
+}
+
+function ddCloseDetail(){
+  ddActiveCard=null;
+  document.querySelectorAll('.dd-card').forEach(c=>c.classList.remove('dd-active'));
+  document.getElementById('dd-detail').style.display='none';
+}
+
+function ddShowDetail(idx){
+  const def=ddDefs[idx];
+  const res=ddResults[idx];
+  const panel=document.getElementById('dd-detail');
+  const title=document.getElementById('dd-detail-title');
+  const countEl=document.getElementById('dd-detail-count');
+  const tbody=document.getElementById('dd-detail-tbody');
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  title.textContent=def?.name||'';
+  if(!res){
+    countEl.textContent='carregando…';
+    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3)">Aguardando resultado…</td></tr>`;
+    return;
+  }
+  if(res.error){
+    countEl.textContent='erro';
+    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--danger)">${res.error}</td></tr>`;
+    return;
+  }
+  const issues=res.issues||[];
+  countEl.textContent=`${issues.length} issue${issues.length!==1?'s':''} ${res.count>issues.length?`(total: ${res.count})`:''}`;
+  if(!issues.length){
+    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--success)">✓ Nenhuma ocorrência encontrada</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=issues.map(iss=>{
+    const f=iss.fields||{};
+    const type=f.issuetype?.name||'';
+    const status=f.status?.name||'';
+    const summary=(f.summary||'').replace(/</g,'&lt;');
+    const assignee=f.assignee?.displayName||f.assignee?.name||'—';
+    const ts=(f.timespent||0)/3600;
+    // Epic link — Jira Server usa customfield_10014 (string) ou customfield_10000
+    const epicKey=f.customfield_10014||f.customfield_10000||'';
+    // Lead time: data de criação até hoje (em dias)
+    const created=f.created?new Date(f.created):null;
+    const lt=created?Math.floor((Date.now()-created.getTime())/86400000):null;
+    const tc={Bug:'t-bug',Story:'t-story',Feature:'t-feature',Epic:'t-epic'}[type]||'t-story';
+    const stCls={'To Do':'st-todo','In Progress':'st-inprogress','Code Review':'st-codereview','To Do Review':'st-todoreview','Review':'st-review','Done':'st-done'}[status]||'st-other';
+    return `<tr>
+      <td class="col-type"><span class="type-badge ${tc}">${type.slice(0,5)}</span></td>
+      <td class="col-key"><a href="${cfg.url}/browse/${iss.key}" target="_blank">${iss.key}</a></td>
+      <td class="col-status"><span class="st-pill ${stCls}">${status}</span></td>
+      <td class="col-epic">${epicKey?`<a href="${cfg.url}/browse/${epicKey}" target="_blank" style="color:#fcd34d;text-decoration:none;border-bottom:1px dashed #fcd34d55">${epicKey}</a>`:'—'}</td>
+      <td class="col-sum" title="${summary}">${summary}</td>
+      <td class="col-assign">${assignee}</td>
+      <td class="col-lt">${lt!=null?lt+'d':'—'}</td>
+      <td class="col-ts">${ts>0?fmtH(ts):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── Drag & drop reordenação ─────────────────────────────────
+let ddDragSrcPos=null;
+
+function ddDragStart(e,pos){
+  ddDragSrcPos=pos;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function ddDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function ddDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+function ddDrop(e,targetPos){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(ddDragSrcPos===null||ddDragSrcPos===targetPos)return;
+  const moved=ddOrder.splice(ddDragSrcPos,1)[0];
+  ddOrder.splice(targetPos,0,moved);
+  ddDragSrcPos=null;
+  ddSaveSession();
+  renderDdGrid();
+  // re-renderizar cards com resultados já obtidos
+  ddOrder.forEach(idx=>{if(ddResults[idx])renderDdCard(idx);});
+  if(ddActiveCard!==null) ddShowDetail(ddActiveCard);
+}
+function ddDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.dd-card').forEach(c=>c.classList.remove('drag-over'));
+  ddDragSrcPos=null;
+}
+
+// ─── Erro ────────────────────────────────────────────────────
+function showDdError(msg){
+  const el=document.getElementById('dd-error');
+  el.style.display=msg?'block':'none';
+  if(msg)el.textContent='❌ '+msg;
+}</script>
 </body>
 </html>

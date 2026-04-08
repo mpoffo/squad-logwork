@@ -2,7 +2,7 @@
 
 Ferramenta interna para apontamento de horas e acompanhamento de produtividade do time no Jira Senior (on-premise).
 
-**Versão atual:** v1.3.0
+**Versão atual:** v1.4.0
 
 ---
 
@@ -18,8 +18,9 @@ Ferramenta interna para apontamento de horas e acompanhamento de produtividade d
 - Checkbox para incluir/excluir issues da distribuição
 - Issues do tipo **Feature** e **Epic** começam desmarcadas por padrão
 - Issues com mais de **27h** acumuladas são destacadas com alerta visual (⚠) e começam desmarcadas
+- Filtro por assignee acima das listas (client-side, sem chamadas adicionais ao Jira)
 - Key de cada issue é um link clicável que abre a issue no Jira
-- Barra de progresso com etapas nomeadas e contadores em tempo real
+- Progresso de carregamento com etapas nomeadas e contador em tempo real
 - Lançamento individual por issue ou tudo de uma vez
 
 ### Aba — Horas do Time
@@ -29,10 +30,21 @@ Ferramenta interna para apontamento de horas e acompanhamento de produtividade d
 - Seleção de dia específico para visão detalhada
 - Tabela resumo com esperado, apontado, %, barra de progresso e diferença
 - Expansão por membro para ver os apontamentos por issue em ordem cronológica, com link para cada issue no Jira
-- Filtro por membro para recarregar dados individualmente
-- Barra de progresso com etapas nomeadas e contadores em tempo real
+- Filtro por membro para recarregar dados individualmente (mais rápido)
+- Progresso de carregamento com etapas nomeadas e contador em tempo real
 - Cache local (localStorage) para manter os dados após F5, com indicação de quando foi atualizado
 - Dados carregados automaticamente ao abrir a página se as credenciais já estiverem salvas
+
+### Aba — 🔎 Dedo Duro
+- Dashboard de indicadores de qualidade e processo baseado em queries JQL configuráveis
+- Indicadores exibidos como cards com contador grande: verde (0), amarelo (1–3), vermelho (4+)
+- Clique no card expande uma tabela com as issues retornadas: Tipo, Key, Status, Epic Link, Resumo, Assignee, Lead Time e Time Spent
+- **Atualização automática a cada 3 horas** — roda silenciosamente em background
+- Indicador no toolbar mostra o tempo restante para a próxima atualização
+- **Notificação nativa do browser** quando algum indicador sobe em relação à rodada anterior — aparece mesmo com a aba em segundo plano, com o detalhamento de quais indicadores subiram e o delta
+- Reordenação dos cards por drag & drop — a ordem é salva no `localStorage`
+- Suporte a múltiplos arquivos de definição (um por contexto/projeto)
+- O arquivo selecionado é lembrado entre sessões e recarregado automaticamente
 
 ---
 
@@ -43,7 +55,9 @@ squad-logwork/
 ├── proxy.js            # Servidor Node.js local (proxy para o Jira)
 ├── squad-logwork.html  # Interface web completa
 ├── README.md
-└── .gitignore
+├── .gitignore
+└── dedoduro/           # Definições dos indicadores Dedo Duro
+    └── HCMDOF.json     # Indicadores do projeto HCMDOF
 ```
 
 ---
@@ -66,6 +80,8 @@ node proxy.js
 
 O proxy ficará rodando em `http://localhost:3000` e servirá o HTML automaticamente.
 
+> ⚠️ **Importante:** a aba Dedo Duro requer acesso via `http://localhost:3000`. Abrir o HTML diretamente como `file:///` bloqueia os requests ao proxy por política de CORS do browser.
+
 #### Automatizar com agendador de tarefas (opcional)
 
 Para subir o proxy automaticamente em um horário fixo, crie um `.bat`:
@@ -80,19 +96,14 @@ start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localho
 E agende com o Task Scheduler (sem privilégios elevados):
 
 ```cmd
-schtasks /create /tn "Squad Logwork" /tr "\"C:\caminho\seu-arquivo.bat\"" /sc DAILY /st 16:00 /ru "%USERNAME%" /f
+schtasks /create /tn "Squad Logwork" /tr "\"C:\caminho\seu-arquivo.bat\"" /sc DAILY /st 08:00 /ru "%USERNAME%" /f
 ```
 
 ### 2. Acessar a interface
 
-Via proxy (recomendado):
+Via proxy (obrigatório para o Dedo Duro):
 ```
 http://localhost:3000
-```
-
-Ou diretamente pelo arquivo (VPN ainda necessária para as chamadas ao Jira):
-```
-file:///C:/GIT-personal/JiraProdutividade/squad-logwork.html
 ```
 
 ### 3. Configurar credenciais
@@ -133,9 +144,48 @@ Três JQLs configuráveis. Se uma query customizada falhar (erro de sintaxe), o 
 
 ---
 
-## Time
+## Dedo Duro — definições de indicadores
 
-Os membros do time são configurados diretamente na interface, na aba **Time** em **⚙ Config** — um usuário por linha. Não é necessário editar o código.
+Os indicadores são definidos em arquivos `.json` dentro da pasta `dedoduro/`, na raiz do projeto.
+
+### Formato do arquivo
+
+```json
+[
+  {
+    "name": "Nome do indicador",
+    "query": "project = HCMDOF AND status not in (Done, Closed)"
+  }
+]
+```
+
+Cada arquivo representa um conjunto de indicadores (ex: um por projeto ou contexto). O app lista automaticamente todos os arquivos da pasta e permite trocar entre eles no toolbar da aba.
+
+### Adicionando novos indicadores
+
+1. Edite o arquivo `.json` correspondente (ou crie um novo em `dedoduro/`)
+2. Clique em **↻ Atualizar** na aba Dedo Duro — o arquivo é relido a cada rodada
+
+### Notificações
+
+Na primeira vez que a aba Dedo Duro é aberta, o browser solicita permissão para enviar notificações. Conceda a permissão para receber alertas quando algum indicador subir.
+
+As notificações aparecem no sistema operacional mesmo com o Squad Logwork em segundo plano. Clicar na notificação abre a janela e navega diretamente para a aba Dedo Duro.
+
+---
+
+## Time padrão
+
+| Usuário | Papel |
+|---------|-------|
+| mauro.ramos | Squad Leader |
+| fernando.zimmermann | Dev |
+| diegof.silva | Dev |
+| leonardo.correa | Dev |
+| douglas.scardueli | Dev |
+| marcio.poffo | Dev |
+
+Para adicionar ou remover membros, use a aba **Time** em ⚙ Config — não é necessário editar o código.
 
 ---
 
@@ -149,7 +199,9 @@ Testado com **Jira Server 7.7.0** (2018). A busca de worklogs é feita via `work
 
 | Versão | Descrição |
 |--------|-----------|
-| v1.3.0 | Visão semanal com barras agrupadas por dia e filtragem por membro |
+| v1.4.0 | Aba Dedo Duro: dashboard de indicadores JQL com auto-refresh (3h), notificação nativa do browser e drag & drop |
+| v1.3.1 | Avatares de assignee com badge de iniciais e filtro client-side por assignee |
+| v1.3.0 | Badge de assignee nas issues da aba Apontar Horas |
 | v1.2.7 | Barra de progresso com etapas nomeadas e contadores em tempo real |
 | v1.2.6 | Remoção do controle de "alerta de total diário" inexistente |
 | v1.2.5 | Links clicáveis nas keys das issues (aba Log e detalhamento do Time) |

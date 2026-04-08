@@ -70,6 +70,34 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Lista arquivos da pasta dedoduro: GET /dedoduro/_list
+  if (pathname === '/dedoduro/_list') {
+    const ddDir = path.join(__dirname, 'dedoduro');
+    try {
+      const files = fs.readdirSync(ddDir).filter(f => f.endsWith('.json'));
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ files }));
+    } catch {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ files: [] }));
+    }
+    return;
+  }
+
+  // Serve arquivos JSON da pasta dedoduro: GET /dedoduro/<arquivo>.json
+  if (pathname.startsWith('/dedoduro/') && pathname.endsWith('.json')) {
+    const fileName = path.basename(pathname); // evita path traversal
+    const filePath = path.join(__dirname, 'dedoduro', fileName);
+    try {
+      const content = fs.readFileSync(filePath, 'utf8');
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(content);
+    } catch {
+      res.writeHead(404); res.end('Arquivo não encontrado');
+    }
+    return;
+  }
+
   // Proxy: /proxy?url=<jira-url-completa>
   if (pathname === '/proxy') {
     // A URL do Jira vem encodada com encodeURIComponent no cliente.
