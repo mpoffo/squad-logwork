@@ -38,5 +38,9 @@
   {
     "name": "Issue de tradução em backlog",
     "query": "project = \"HCM - Data Office\" AND issuetype = Tradução AND status = Backlog"
+  },
+  {
+	  "name": "Issues em testes",
+	  "query": "project = \"HCM - Data Office\" and status in (\"To Do Review\", Review)"
   }
 ]
